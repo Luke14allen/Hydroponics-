@@ -22,12 +22,16 @@ def list_new_files_in_folder(service, folder_id, last_check_time):
     query = f"'{folder_id}' in parents and trashed = false and createdTime > '{last_check_time.isoformat()}'"
     results = service.files().list(q=query, fields="files(id, name, createdTime)").execute()
     return results.get('files', [])
-def getFilesInFolder(id):
+
+#used to set and get Folder ids
+def setFolderId(id):
     response = service.files().list(
         q=f"'{id}' in parents",
         fields = "nextPageToken, files(id, name)"
     ).execute()
     return response.get("files", [])
+
+
 def download_file(service, file_id, file_name):
     try:
         request = service.files().get_media(fileId=file_id)
@@ -85,15 +89,14 @@ if __name__ == "__main__":
            .list(fields = "nextPageToken, files(id, name)")
            .execute())
     files = result.get("files", [])
+
     for file in files:
-        print(file['name'])
         if(file['name'] == "DevNet-Test"):
             parentid = file['id']
-            print(parentid)
-    print(parentid)
+    
     if(parentid):
-        subfolders = getFilesInFolder(parentid)
-    print(subfolders)
+        subfolders = setFolderId(parentid)
+
     for folder in subfolders:
         if(folder['name'] == 'images'):
             images_folder_id = folder['id']
