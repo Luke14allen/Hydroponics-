@@ -16,15 +16,18 @@ SCOPES = ['https://www.googleapis.com/auth/drive']
 service = Create_Service(CLIENT_SECRET_FILE, API_NAME, API_VERSION, SCOPES)
 
 # Replace 'your_images_folder_id' with the actual ID of your images folder
-images_folder_id = '1v8c2QBQ0mDw341WT37enC4QetPjnfq9P'
-
 last_check_time = datetime.now(timezone.utc)
 
 def list_new_files_in_folder(service, folder_id, last_check_time):
     query = f"'{folder_id}' in parents and trashed = false and createdTime > '{last_check_time.isoformat()}'"
     results = service.files().list(q=query, fields="files(id, name, createdTime)").execute()
     return results.get('files', [])
-
+def getFilesInFolder(id):
+    response = service.files().list(
+        q=f"'{id}' in parents",
+        fields = "nextPageToken, files(id, name)"
+    ).execute()
+    return response.get("files", [])
 def download_file(service, file_id, file_name):
     try:
         request = service.files().get_media(fileId=file_id)
@@ -74,7 +77,29 @@ def setup_webhook(folder_id, webhook_url):
 if __name__ == "__main__":
     ngrok_url = input("Enter your ngrok HTTPS URL: ")
     webhook_url = f"{ngrok_url}/webhook"
-    
+    parentid = None
+    images_folder_id = None
+    data_folder_id = None
+
+    result = (service.files()
+           .list(fields = "nextPageToken, files(id, name)")
+           .execute())
+    files = result.get("files", [])
+    for file in files:
+        print(file['name'])
+        if(file['name'] == "DevNet-Test"):
+            parentid = file['id']
+            print(parentid)
+    print(parentid)
+    if(parentid):
+        subfolders = getFilesInFolder(parentid)
+    print(subfolders)
+    for folder in subfolders:
+        if(folder['name'] == 'images'):
+            images_folder_id = folder['id']
+        elif(folder['name'] == 'sensor_data'):
+            data_folder_id = folder['id']
+
     setup_webhook(images_folder_id, webhook_url)
     
     print("Starting Flask server...")
