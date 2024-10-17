@@ -82,8 +82,7 @@ if __name__ == "__main__":
     ngrok_url = input("Enter your ngrok HTTPS URL: ")
     webhook_url = f"{ngrok_url}/webhook"
     parentid = None
-    images_folder_id = None
-    data_folder_id = None
+    folderIds = []
 
     result = (service.files()
            .list(fields = "nextPageToken, files(id, name)")
@@ -99,11 +98,11 @@ if __name__ == "__main__":
 
     for folder in subfolders:
         if(folder['name'] == 'images'):
-            images_folder_id = folder['id']
+            folderIds.append(folder['id'])
         elif(folder['name'] == 'sensor_data'):
-            data_folder_id = folder['id']
-
-    setup_webhook(images_folder_id, webhook_url)
+            folderIds.append(folder['id'])
+    for id in folderIds:
+        setup_webhook(id, webhook_url)
     
     print("Starting Flask server...")
     app.run(port=5000)
