@@ -5,6 +5,7 @@ import io
 from googleapiclient.http import MediaIoBaseDownload
 from googleapiclient.errors import HttpError
 from flask import Flask, request
+import uuid
 
 app = Flask(__name__)
 
@@ -15,11 +16,11 @@ SCOPES = ['https://www.googleapis.com/auth/drive']
 
 service = Create_Service(CLIENT_SECRET_FILE, API_NAME, API_VERSION, SCOPES)
 
-# Replace 'your_images_folder_id' with the actual ID of your images folder
-last_check_time = datetime.now(timezone.utc)
+#dictionary to track check times for each folder
+last_check_times = {}
 
 def list_new_files_in_folder(service, folder_id, last_check_time):
-    query = f"'{folder_id}' in parents and trashed = false and createdTime > '{last_check_time.isoformat()}'"
+    query = f"'{folder_id}' in parents and trashed = false and (createdTime > '{last_check_time.isoformat()}' or modifiedTime > '{last_check_time.isoformat()}')"
     results = service.files().list(q=query, fields="files(id, name, createdTime)").execute()
     return results.get('files', [])
 
@@ -50,26 +51,30 @@ def download_file(service, file_id, file_name):
 
 @app.route('/webhook', methods=['POST'])
 def webhook():
-    global last_check_time
+
     print("Webhook triggered! Checking for new files...")
     
-    new_files = list_new_files_in_folder(service, images_folder_id, last_check_time)
+    for id in folderIds:
+        last_check_time = last_check_times.get(id, datetime.now(timezone.utc))
+
+        new_files = list_new_files_in_folder(service, id, last_check_time)
     
-    if new_files:
-        print(f"\nFound {len(new_files)} new file(s):")
-        for file in new_files:
-            print(f"Downloading: {file['name']} (ID: {file['id']})")
-            download_file(service, file['id'], file['name'])
-    else:
-        print("No new files found.")
-    
-    last_check_time = datetime.now(timezone.utc)
+        if new_files:
+            print(f"\nFound {len(new_files)} new file(s):")
+            for file in new_files:
+                print(f"Downloading: {file['name']} (ID: {file['id']})")
+                download_file(service, file['id'], file['name'])
+        else:
+            print("No new files found.")
+        
+        last_check_times[id] = datetime.now(timezone.utc)
     return "OK", 200
 
 def setup_webhook(folder_id, webhook_url):
     try:
+        uniqueid = str(uuid.uuid4())
         body = {
-            'id': 'my-webhook',
+            'id': uniqueid,
             'type': 'web_hook',
             'address': webhook_url
         }
@@ -97,10 +102,14 @@ if __name__ == "__main__":
         subfolders = setFolderId(parentid)
 
     for folder in subfolders:
-        if(folder['name'] == 'images'):
+        if folder['name'] == 'images' or folder['name'] == 'sensor_data':
             folderIds.append(folder['id'])
-        elif(folder['name'] == 'sensor_data'):
-            folderIds.append(folder['id'])
+    
+
+    for id in folderIds:
+        print(id)
+        last_check_times[id] = datetime.now(timezone.utc)
+    
     for id in folderIds:
         setup_webhook(id, webhook_url)
     
