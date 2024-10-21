@@ -6,6 +6,8 @@ from googleapiclient.http import MediaIoBaseDownload
 from googleapiclient.errors import HttpError
 from flask import Flask, request
 import uuid
+import platform
+import os
 
 app = Flask(__name__)
 
@@ -32,9 +34,9 @@ def setFolderId(id):
     ).execute()
     return response.get("files", [])
 
-
-def download_file(service, file_id, file_name):
+def download_file(service, file_id, file_name, folder_path):
     try:
+        path = os.path.join(folder_path, file_name)
         request = service.files().get_media(fileId=file_id)
         fh = io.BytesIO()
         downloader = MediaIoBaseDownload(fh, request)
@@ -43,7 +45,7 @@ def download_file(service, file_id, file_name):
             status, done = downloader.next_chunk()
         fh.seek(0)
 
-        with open(file_name, 'wb') as f:
+        with open(path, 'wb') as f:
             f.write(fh.read())
         print(f"File '{file_name}' downloaded successfully.")
     except HttpError as error:
@@ -54,7 +56,7 @@ def webhook():
 
     print("Webhook triggered! Checking for new files...")
     
-    for id in folderIds:
+    for name, id in folderIds.items():
         last_check_time = last_check_times.get(id, datetime.now(timezone.utc))
 
         new_files = list_new_files_in_folder(service, id, last_check_time)
@@ -63,7 +65,10 @@ def webhook():
             print(f"\nFound {len(new_files)} new file(s):")
             for file in new_files:
                 print(f"Downloading: {file['name']} (ID: {file['id']})")
-                download_file(service, file['id'], file['name'])
+                if name == 'sensor_data':
+                    download_file(service, file['id'], file['name'], 'data')
+                elif name == 'images':
+                    download_file(service, file['id'], file['name'], 'images')
         else:
             print("No new files found.")
         
@@ -87,7 +92,7 @@ if __name__ == "__main__":
     ngrok_url = input("Enter your ngrok HTTPS URL: ")
     webhook_url = f"{ngrok_url}/webhook"
     parentid = None
-    folderIds = []
+    folderIds = {}
 
     result = (service.files()
            .list(fields = "nextPageToken, files(id, name)")
@@ -103,14 +108,13 @@ if __name__ == "__main__":
 
     for folder in subfolders:
         if folder['name'] == 'images' or folder['name'] == 'sensor_data':
-            folderIds.append(folder['id'])
+            folderIds[folder['name']] = folder['id']
     
 
-    for id in folderIds:
-        print(id)
+    for id in folderIds.values():
         last_check_times[id] = datetime.now(timezone.utc)
     
-    for id in folderIds:
+    for id in folderIds.values():
         setup_webhook(id, webhook_url)
     
     print("Starting Flask server...")
