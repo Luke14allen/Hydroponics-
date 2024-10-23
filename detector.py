@@ -36,6 +36,8 @@ def setFolderId(id):
 
 def download_file(service, file_id, file_name, folder_path):
     try:
+        if not os.path.exists(folder_path):
+            os.makedirs(folder_path)
         path = os.path.join(folder_path, file_name)
         request = service.files().get_media(fileId=file_id)
         fh = io.BytesIO()
