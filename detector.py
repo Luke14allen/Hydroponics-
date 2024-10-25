@@ -95,7 +95,9 @@ if __name__ == "__main__":
     webhook_url = f"{ngrok_url}/webhook"
     parentid = None
     folderIds = {}
-
+    filepath = ["data", "images"]
+    
+    
     result = (service.files()
            .list(fields = "nextPageToken, files(id, name)")
            .execute())
@@ -112,7 +114,21 @@ if __name__ == "__main__":
         if folder['name'] == 'images' or folder['name'] == 'sensor_data':
             folderIds[folder['name']] = folder['id']
     
-
+    for path in filepath:
+        if not os.path.exists(path):
+            os.makedirs(path)
+            
+    items = os.listdir(path)
+    download = [f for f in items if os.path.isfile(os.path.join(path, f))]
+    if not download:
+        for id in folderIds.values():
+                    files = setFolderId(id)
+                    for file in files:
+                        if os.path.splitext(file['name'])[1] == ".csv":
+                            download_file(service, file['id'], file['name'], 'data')
+                        else:
+                            download_file(service, file['id'], file['name'], 'images')
+                    
     for id in folderIds.values():
         last_check_times[id] = datetime.now(timezone.utc)
     
