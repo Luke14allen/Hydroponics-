@@ -3,9 +3,9 @@ from PIL import Image
 import numpy as np
 import os
 
-def process_csv(file_path):
+def process_csv(sensor_data):
     # Read the CSV file
-    data = pd.read_csv(file_path)
+    data = pd.read_csv('sensor_data.csv')
     
     # Example: Extract specific columns like temperature, humidity
     relevant_data = data[['temperature', 'humidity']]
@@ -23,10 +23,9 @@ def process_csv(file_path):
 def process_image(file_path):
     # Open and preprocess the image
     image = Image.open(file_path)
-    image = image.resize((224, 224))  # Resize for model input, e.g., for CNN
-    image_array = np.array(image) / 255.0  # Normalize pixel values
+    image = image.resize((224, 224))  
     
-    # If needed, add batch dimension for model input (e.g., for TensorFlow)
+    
     image_array = np.expand_dims(image_array, axis=0)
 
     return image_array
@@ -45,7 +44,6 @@ avg_temp, avg_humidity = process_csv(file_path)
 
 print(format_data_for_dashboard(avg_temp, avg_humidity))
 
-# Test image processing
-processed_image = process_image('sample_image.jpg')
+
+processed_image = process_image('image_2024-09-24_18-28-28_orange_pepper.jpg')
 print("Image processed:", processed_image.shape)
-print(f"Looking for file: {sensor_data.csv}")
