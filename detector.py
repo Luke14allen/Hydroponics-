@@ -9,6 +9,7 @@ import uuid
 import platform
 import os
 import app as i
+import process
 
 app = Flask(__name__)
 
@@ -126,9 +127,11 @@ if __name__ == "__main__":
                     for file in files:
                         if os.path.splitext(file['name'])[1] == ".csv":
                             download_file(service, file['id'], file['name'], 'data')
+                            process.run()
                         else:
                             download_file(service, file['id'], file['name'], 'images')
-                    
+                            process.run()
+    process.run()
     for id in folderIds.values():
         last_check_times[id] = datetime.now(timezone.utc)
     
