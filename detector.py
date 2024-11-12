@@ -8,7 +8,6 @@ from flask import Flask, request
 import uuid
 import platform
 import os
-import app as i
 import process
 
 app = Flask(__name__)
@@ -92,51 +91,51 @@ def setup_webhook(folder_id, webhook_url):
     except HttpError as error:
         print(f"An error occurred setting up the webhook: {error}")
 
-if __name__ == "__main__":
-    ngrok_url = input("Enter your ngrok HTTPS URL: ")
-    webhook_url = f"{ngrok_url}/webhook"
-    parentid = None
-    folderIds = {}
-    filepath = ["data", "images"]
-    
-    result = (service.files()
-           .list(fields = "nextPageToken, files(id, name)")
-           .execute())
-    files = result.get("files", [])
 
-    for file in files:
-        if(file['name'] == "DevNet-Test" or file['name'] == "devnet"):
-            parentid = file['id']
-    
-    if(parentid):
-        subfolders = setFolderId(parentid)
+ngrok_url = input("Enter your ngrok HTTPS URL: ")
+webhook_url = f"{ngrok_url}/webhook"
+parentid = None
+folderIds = {}
+filepath = ["data", "images"]
 
-    for folder in subfolders:
-        if folder['name'] == 'images' or folder['name'] == 'sensor_data':
-            folderIds[folder['name']] = folder['id']
-    
-    for path in filepath:
-        if not os.path.exists(path):
-            os.makedirs(path)
-            
-    items = os.listdir(path)
-    download = [f for f in items if os.path.isfile(os.path.join(path, f))]
-    if not download:
-        for id in folderIds.values():
-                    files = setFolderId(id)
-                    for file in files:
-                        if os.path.splitext(file['name'])[1] == ".csv":
-                            download_file(service, file['id'], file['name'], 'data')
-                            process.run()
-                        else:
-                            download_file(service, file['id'], file['name'], 'images')
-                            process.run()
-    process.run()
+result = (service.files()
+        .list(fields = "nextPageToken, files(id, name)")
+        .execute())
+files = result.get("files", [])
+
+for file in files:
+    if(file['name'] == "DevNet-Test" or file['name'] == "devnet"):
+        parentid = file['id']
+
+if(parentid):
+    subfolders = setFolderId(parentid)
+
+for folder in subfolders:
+    if folder['name'] == 'images' or folder['name'] == 'sensor_data':
+        folderIds[folder['name']] = folder['id']
+
+for path in filepath:
+    if not os.path.exists(path):
+        os.makedirs(path)
+        
+items = os.listdir(path)
+download = [f for f in items if os.path.isfile(os.path.join(path, f))]
+if not download:
     for id in folderIds.values():
-        last_check_times[id] = datetime.now(timezone.utc)
-    
-    for id in folderIds.values():
-        setup_webhook(id, webhook_url)
-    
-    print("Starting Flask server...")
-    app.run(port=5000)
+                files = setFolderId(id)
+                for file in files:
+                    if os.path.splitext(file['name'])[1] == ".csv":
+                        download_file(service, file['id'], file['name'], 'data')
+                        process.run()
+                    else:
+                        download_file(service, file['id'], file['name'], 'images')
+                        
+process.run()
+for id in folderIds.values():
+    last_check_times[id] = datetime.now(timezone.utc)
+
+for id in folderIds.values():
+    setup_webhook(id, webhook_url)
+
+print("Starting Flask server...")
+app.run(port=5000)

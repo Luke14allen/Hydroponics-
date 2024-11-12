@@ -1,5 +1,6 @@
 import tkinter as tk
 def runApp():
+    
     # Set up the main window
     app = tk.Tk()
     app.title("Hydroponics")
@@ -13,3 +14,4 @@ def runApp():
 
 
     app.mainloop()
+runApp()
