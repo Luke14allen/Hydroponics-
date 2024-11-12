@@ -8,6 +8,7 @@ from flask import Flask, request
 import uuid
 import platform
 import os
+import app as i
 
 app = Flask(__name__)
 
@@ -97,14 +98,13 @@ if __name__ == "__main__":
     folderIds = {}
     filepath = ["data", "images"]
     
-    
     result = (service.files()
            .list(fields = "nextPageToken, files(id, name)")
            .execute())
     files = result.get("files", [])
 
     for file in files:
-        if(file['name'] == "DevNet-Test"):
+        if(file['name'] == "DevNet-Test" or file['name'] == "devnet"):
             parentid = file['id']
     
     if(parentid):
