@@ -23,8 +23,12 @@
     4. Copy the generated URL to access your application
 
 ## Main Program Usage ##
-    The main file that needs to be run is the main.py script
-    - After running the script it will ask for the ngrok https address.
+    # Run the main file: main.py
+    - After running, it will prompt you to enter the ngrok HTTPS address.
+    - Ensure that the "data" and "images" folders (with files in them) are present in your directory.
+    If these folders or files are missing, run detector.py independently to set them up and can stop once all files are downloaded.
+    - Running detector.py will also prompt you for the ngrok HTTPS address.
+
     
     Required pip installs
      concurrent-futures
