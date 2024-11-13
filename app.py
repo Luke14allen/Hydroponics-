@@ -38,28 +38,43 @@ def runApp():
         avg = process.getAverages(data)
         for key, value in avg.items():
             label = tk.Label(label_frame, text=f'{key}:  {value}', font=('Arial', 12))
-            label.pack(side='top', anchor='w')
+            label.pack(side='bottom', anchor='w')
         dates = list(data)
         date1 = dates[0]
         date2 = dates[-1]
         averages = tk.Label(label_frame, text=f"Data Average for {date1} through {date2}", font=("Arial", 12))
-        averages.pack(side="top",anchor='w')
+        averages.pack(side="bottom",anchor='w')
     label_frame.update_idletasks()
     datacan.config(scrollregion=datacan.bbox("all"))
-
     curcan = tk.Canvas(app)
     curcan.place(relx=1.0, rely=1.0, anchor='se', relwidth=0.5, relheight=0.5)
     current = tk.Label(curcan, text='Current Readings', font=('Arial', 12))
-    current.place(relx=0.5, rely=0.5, anchor='center')
+    current.place(relx=0.5, rely=0.2, anchor='center')
     files = os.listdir(datafold)
     file_paths = [os.path.join(datafold, file) for file in files]
     file_times = [(file, os.path.getmtime(file)) for file in file_paths]
-
+    
     file_times.sort(key=lambda x: x[1], reverse=True)
 
     most_recent_file = file_times[0][0]
     currdata = process.read_csv_by_date(most_recent_file)
-    print(currdata)
+    most_recent_date = max(currdata.keys())
+
+    curr = currdata[most_recent_date]
+    datetime = tk.Label(curcan, text=curr['date_time'], font=('Arial', 12))
+    datetime.place(relx=0.5, rely=0.3, anchor='center')
+    l = [
+        ('pH', curr[' pH']),
+        ('EC', curr['EC']),
+        ('PPM', curr['PPM']),
+        ('Temperature', curr['Temp']),
+        ('Humidity', curr['Humidity']),
+    ]
+    y = 0.4
+    for label, info in l:
+        sen = tk.Label(curcan, text=f'{label}: {info}', font=('Arial', 12))
+        sen.place(relx=0.5, rely=y, anchor='center')
+        y += 0.1
 
     photos = []
     frame = tk.Frame(app)
