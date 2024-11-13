@@ -23,8 +23,9 @@
     4. Copy the generated URL to access your application
 
 ## Main Program Usage ##
-    The main file that needs to be run is the detector.py script
+    The main file that needs to be run is the main.py script
     - After running the script it will ask for the ngrok https address.
+    
     Required pip installs
      concurrent-futures
      flask
