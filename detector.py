@@ -92,13 +92,9 @@ def setup_webhook(folder_id, webhook_url):
     except HttpError as error:
         print(f"An error occurred setting up the webhook: {error}")
 
-
-ngrok_url = input("Enter your ngrok HTTPS URL: ")
-webhook_url = f"{ngrok_url}/webhook"
 parentid = None
 folderIds = {}
 filepath = ["data", "images"]
-
 result = (service.files()
         .list(fields = "nextPageToken, files(id, name)")
         .execute())
@@ -132,6 +128,11 @@ if not download:
                         
 for id in folderIds.values():
     last_check_times[id] = datetime.now(timezone.utc)
+
+ngrok_url = input("Enter your ngrok HTTPS URL: ")
+webhook_url = f"{ngrok_url}/webhook"
+
+
 
 for id in folderIds.values():
     setup_webhook(id, webhook_url)
