@@ -104,7 +104,7 @@ result = (service.files()
 files = result.get("files", [])
 
 for file in files:
-    if(file['name'] == "DevNet-Test" or file['name'] == "devnet"):
+    if(file['name'] == "DevNet-Test"):
         parentid = file['id']
 
 if(parentid):
