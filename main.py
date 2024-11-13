@@ -1,5 +1,7 @@
 import concurrent.futures
 import subprocess
+import os
+import time
 
 # Function to run app.py (Tkinter GUI)
 def run_app():
@@ -12,5 +14,7 @@ def run_detector():
 if __name__ == '__main__':
     # Use concurrent futures to run both functions concurrently
     with concurrent.futures.ThreadPoolExecutor() as executor:
-        executor.submit(run_app)
-        executor.submit(run_detector)
+        detector_future = executor.submit(run_detector)
+        time.sleep(20)
+        app_future = executor.submit(run_app)
+        concurrent.futures.wait([detector_future, app_future])
