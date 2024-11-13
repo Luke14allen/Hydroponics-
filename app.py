@@ -2,21 +2,40 @@ import tkinter as tk
 from PIL import Image, ImageTk
 import os
 import process
+import time
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler
+import threading
 
+class FileDownloadHandler(FileSystemEventHandler):
+    def on_created(self, event):
+        if not event.is_directory:
+            refresh()
+
+def start_file_listener(folders_to_watch):
+    event_handler = FileDownloadHandler()
+    observer = Observer()
+    for folder in folders_to_watch:
+        observer.schedule(event_handler, folder, recursive=False)
+    
+    observer.daemon = True
+    observer.start()
+    observer.join()
+
+photos = []
+folders_to_watch = ["data", "images"]
 def on_mouse_wheel(event, canvas, scroll_direction="vertical"):
     if scroll_direction == "vertical":
         canvas.yview_scroll(int(-1*(event.delta/120)), "units")
     else:
         canvas.xview_scroll(int(-1*(event.delta/120)), "units")
-
-def runApp():
+def refresh():
     imagefold = 'images'
     datafold = 'data'
-    # Set up the main window
-    app = tk.Tk()
-    app.title("Hydroponics")
-    app.geometry("1080x600")
-
+    global photos
+    photos.clear()
+    for widget in app.winfo_children():
+        widget.destroy()
     #title 
     label = tk.Label(app, text="Hydroponics Data", font=("Arial", 14))
     label.pack(side="top")
@@ -76,7 +95,7 @@ def runApp():
         sen.place(relx=0.5, rely=y, anchor='center')
         y += 0.1
 
-    photos = []
+    
     frame = tk.Frame(app)
     frame.pack(fill='both', expand=True)
     canvas = tk.Canvas(frame, width=1000, height=250)
@@ -111,6 +130,19 @@ def runApp():
     image_frame.update_idletasks()
     canvas.config(scrollregion=canvas.bbox('all'))
     
+def runApp():
+    
+    # Set up the main window
+    global app
+    app = tk.Tk()
+    app.title("Hydroponics")
+    app.geometry("1080x600")
+    refresh()
     app.mainloop()
+
 if __name__ == "__main__":
+    listener_thread = threading.Thread(target=start_file_listener, args=(folders_to_watch,))
+    listener_thread.start()
     runApp()
+    
+    

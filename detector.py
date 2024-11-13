@@ -9,6 +9,7 @@ import uuid
 import platform
 import os
 import process
+import app as i
 
 app = Flask(__name__)
 

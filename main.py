@@ -1,33 +1,16 @@
+import concurrent.futures
 import subprocess
 
-def main():
-    # Run app.py
-    app_process = subprocess.Popen(["python", "app.py"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    
-    # Run detector.py
-    detector_process = subprocess.Popen(["python", "detector.py"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    
-    try:
-        # Wait for the processes to complete
-        app_stdout, app_stderr = app_process.communicate()
-        detector_stdout, detector_stderr = detector_process.communicate()
+# Function to run app.py (Tkinter GUI)
+def run_app():
+    subprocess.run(['python3', 'app.py'])
 
-        # Print outputs (optional)
-        print("Output from app.py:")
-        print(app_stdout.decode())
-        print("Errors from app.py (if any):")
-        print(app_stderr.decode())
-        
-        print("\nOutput from detector.py:")
-        print(detector_stdout.decode())
-        print("Errors from detector.py (if any):")
-        print(detector_stderr.decode())
-    
-    except KeyboardInterrupt:
-        # Terminate processes on keyboard interrupt
-        app_process.terminate()
-        detector_process.terminate()
-        print("\nProcesses terminated.")
+# Function to run detector.py (Flask server)
+def run_detector():
+    subprocess.run(['python3', 'detector.py'])
 
-if __name__ == "__main__":
-    main()
+if __name__ == '__main__':
+    # Use concurrent futures to run both functions concurrently
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        executor.submit(run_app)
+        executor.submit(run_detector)
