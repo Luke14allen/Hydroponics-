@@ -15,6 +15,6 @@ if __name__ == '__main__':
     # Use concurrent futures to run both functions concurrently
     with concurrent.futures.ThreadPoolExecutor() as executor:
         detector_future = executor.submit(run_detector)
-        time.sleep(20)
+        time.sleep(5)
         app_future = executor.submit(run_app)
         concurrent.futures.wait([detector_future, app_future])
